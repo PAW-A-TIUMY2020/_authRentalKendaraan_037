@@ -15,12 +15,6 @@ namespace RentalKendaraan.Areas.Identity
         public void Configure(IWebHostBuilder builder)
         {
             builder.ConfigureServices((context, services) => {
-                services.AddDbContext<RentalKendaraanContext>(options =>
-                    options.UseSqlServer(
-                        context.Configuration.GetConnectionString("RentalKendaraanContextConnection")));
-
-                //services.AddDefaultIdentity<IdentityUser>()
-                    //.AddEntityFrameworkStores<RentalKendaraanContext>();
             });
         }
     }

@@ -36,12 +36,14 @@ namespace RentalKendaraan
                 options.MinimumSameSitePolicy = SameSiteMode.None;
             });
 
-            services.AddDbContext<rental_kendaraanContext>(options =>
+            services.AddDbContext<Models.RentalKendaraanContext>(options =>
             options.UseSqlServer(Configuration.GetConnectionString("DevConnection")));
-            services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
+            //services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
 
+            //services.AddDefaultIdentity<IdentityUser>()
+            //.AddEntityFrameworkStores<Models.RentalKendaraannContext>
             services.AddIdentity<IdentityUser, IdentityRole>().AddDefaultUI()
-                .AddEntityFrameworkStores<rental_kendaraanContext>().AddDefaultTokenProviders();
+.AddEntityFrameworkStores<Models.RentalKendaraanContext>().AddDefaultTokenProviders();
 
             services.AddAuthorization(options =>
             {
@@ -54,6 +56,8 @@ namespace RentalKendaraan
                 options.AddPolicy("deletepolicy",
                     builder => builder.RequireRole("Admin", "Kasir"));
             });
+
+
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

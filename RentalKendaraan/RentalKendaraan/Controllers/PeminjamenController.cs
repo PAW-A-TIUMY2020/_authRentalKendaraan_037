@@ -20,57 +20,25 @@ namespace RentalKendaraan_20180140037.Controllers
         }
 
         [Authorize(Policy = "readonlypolicy")]
-        // GET: Peminjaman
-        public async Task<IActionResult> Index(string ktsd, string searchString, string currentFilter, int? pageNumber, string sortOrder)
+        // GET: Peminjamen
+        public async Task<IActionResult> Index(string pmjm, string searchString, string sortOrder, string currentFilter, int? pageNumber)
         {
-            //buat list menyimpan ketersediaan
-            var ktsdList = new List<string>();
-            //Query mengambil data
-            var ktsdQuery = from d in _context.Peminjaman orderby d.IdJaminanNavigation.NamaJaminan.ToString() select d.IdJaminanNavigation.NamaJaminan.ToString();
-
-            ktsdList.AddRange(ktsdQuery.Distinct());
-
-            //untuk menampilkan di view
-            ViewBag.ktsd = new SelectList(ktsdList);
-
-            //panggil db context
-            var menu = from m in _context.Peminjaman.Include(k => k.IdJaminanNavigation) select m;
-
-            //untuk memilih dropdownlist ketersediaan
-            if (!string.IsNullOrEmpty(ktsd))
+            var pmjmList = new List<string>();
+            var pmjmQuery = from d in _context.Peminjaman orderby d.IdPeminjaman select d.IdPeminjaman.ToString();
+            pmjmList.AddRange(pmjmQuery.Distinct());
+            ViewBag.pmjm = new SelectList(pmjmList);
+            var menu = from m in _context.Peminjaman.Include(k => k.IdCustomerNavigation).Include(k => k.IdJaminanNavigation).Include(k => k.IdKendaraanNavigation) select m;
+            if (!string.IsNullOrEmpty(pmjm))
             {
-                menu = menu.Where(x => x.IdJaminanNavigation.NamaJaminan.ToString() == ktsd);
+                menu = menu.Where(x => x.IdPeminjaman.ToString() == pmjm);
             }
-
-            //untuk search data
             if (!string.IsNullOrEmpty(searchString))
             {
-                menu = menu.Where(p => p.IdCustomerNavigation.NamaCustomer.Contains(searchString) || p.IdJaminanNavigation.NamaJaminan.Contains(searchString)
-                || p.IdKendaraanNavigation.NamaKendaraan.Contains(searchString) || p.Biaya.ToString().Contains(searchString) || p.TglPeminjaman.ToString().Contains(searchString));
+                menu = menu.Where(s => s.TglPeminjaman.ToString().Contains(searchString));
             }
 
-            //untuk sorting
-            ViewData["NameSortParm"] = String.IsNullOrEmpty(sortOrder) ? "name_desc" : "";
-            ViewData["DateSortParm"] = sortOrder == "Date" ? "date_desc" : "Date";
-
-            switch (sortOrder)
-            {
-                case "name_desc":
-                    menu = menu.OrderByDescending(p => p.IdCustomerNavigation.NamaCustomer);
-                    break;
-                case "Date":
-                    menu = menu.OrderBy(p => p.TglPeminjaman);
-                    break;
-                case "date_desc":
-                    menu = menu.OrderByDescending(p => p.TglPeminjaman);
-                    break;
-                default:
-                    menu = menu.OrderBy(p => p.IdCustomerNavigation.NamaCustomer);
-                    break;
-            }
-
-            //membuat pagedList
             ViewData["CurrentSort"] = sortOrder;
+
             if (searchString != null)
             {
                 pageNumber = 1;
@@ -80,12 +48,34 @@ namespace RentalKendaraan_20180140037.Controllers
                 searchString = currentFilter;
             }
 
+
+
             ViewData["CurrentFilter"] = searchString;
 
-            //definisi jumlah data pada halaman
-            int pageSize = 5;
+            ViewData["NameSortParm"] = String.IsNullOrEmpty(sortOrder) ? "name_desc" : "";
+            ViewData["DateSortParm"] = sortOrder == "Date" ? "date_desc" : "Date";
 
+            switch (sortOrder)
+            {
+                case "name_desc":
+                    menu = menu.OrderByDescending(s => s.IdCustomerNavigation.NamaCustomer);
+                    break;
+                case "Date":
+                    menu = menu.OrderBy(s => s.TglPeminjaman);
+                    break;
+                case "date_desc":
+                    menu = menu.OrderByDescending(s => s.TglPeminjaman);
+                    break;
+                default:
+                    menu = menu.OrderBy(s => s.IdCustomerNavigation.NamaCustomer);
+                    break;
+            }
+
+            int pageSize = 5;
             return View(await PaginatedList<Peminjaman>.CreateAsync(menu.AsNoTracking(), pageNumber ?? 1, pageSize));
+
+
+
         }
 
         // GET: Peminjamen/Details/5
@@ -109,13 +99,13 @@ namespace RentalKendaraan_20180140037.Controllers
             return View(peminjaman);
         }
 
-        [Authorize(Policy = "editpolicy")]
+        [Authorize(Policy = "writepolicy")]
         // GET: Peminjamen/Create
         public IActionResult Create()
         {
-            ViewData["IdCustomer"] = new SelectList(_context.Customer, "IdCustomer", "IdCustomer");
-            ViewData["IdJaminan"] = new SelectList(_context.Jaminan, "IdJaminan", "IdJaminan");
-            ViewData["IdKendaraan"] = new SelectList(_context.Kendaraan, "IdKendaraan", "IdKendaraan");
+            ViewData["IdCustomer"] = new SelectList(_context.Customer, "IdCustomer", "NamaCustomer");
+            ViewData["IdJaminan"] = new SelectList(_context.Jaminan, "IdJaminan", "NamaJaminan");
+            ViewData["IdKendaraan"] = new SelectList(_context.Kendaraan, "IdKendaraan", "NamaKendaraan");
             return View();
         }
 
@@ -138,6 +128,7 @@ namespace RentalKendaraan_20180140037.Controllers
             return View(peminjaman);
         }
 
+        [Authorize(Policy = "editpolicy")]
         // GET: Peminjamen/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
@@ -195,8 +186,8 @@ namespace RentalKendaraan_20180140037.Controllers
             return View(peminjaman);
         }
 
-        // GET: Peminjamen/Delete/5
         [Authorize(Policy = "deletepolicy")]
+        // GET: Peminjamen/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)

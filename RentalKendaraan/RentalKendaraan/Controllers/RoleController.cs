@@ -15,11 +15,13 @@ namespace RentalKendaraan.Controllers
         {
             this.roleManager = roleManager;
         }
+
         public IActionResult Index()
         {
             var roles = roleManager.Roles.ToList();
             return View(roles);
         }
+
         public IActionResult Create()
         {
             return View(new IdentityRole());
