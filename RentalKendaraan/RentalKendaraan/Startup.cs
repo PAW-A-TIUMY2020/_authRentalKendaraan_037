@@ -13,6 +13,7 @@ using RentalKendaraan.Data;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using RentalKendaraan_20180140037.Models;
+using Microsoft.AspNetCore.Identity.UI.Services;
 
 namespace RentalKendaraan
 {
@@ -36,14 +37,23 @@ namespace RentalKendaraan
             });
 
             services.AddDbContext<rental_kendaraanContext>(options =>
-                options.UseSqlServer(
-                    Configuration.GetConnectionString("DevConnection")));
-           
-
+            options.UseSqlServer(Configuration.GetConnectionString("DevConnection")));
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
 
             services.AddIdentity<IdentityUser, IdentityRole>().AddDefaultUI()
                 .AddEntityFrameworkStores<rental_kendaraanContext>().AddDefaultTokenProviders();
+
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy("readonlypolicy",
+                    builder => builder.RequireRole("Admin", "Manager", "Kasir"));
+                options.AddPolicy("writepolicy",
+                    builder => builder.RequireRole("Admin", "Kasir"));
+                options.AddPolicy("editpolicy",
+                    builder => builder.RequireRole("Admin", "Kasir"));
+                options.AddPolicy("deletepolicy",
+                    builder => builder.RequireRole("Admin", "Kasir"));
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

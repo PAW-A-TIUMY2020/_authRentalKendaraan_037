@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using RentalKendaraan_20180140037.Models;
+using Microsoft.AspNetCore.Authorization;
 
 namespace RentalKendaraan_20180140037.Controllers
 {
@@ -18,7 +19,8 @@ namespace RentalKendaraan_20180140037.Controllers
             _context = context;
         }
 
-        // GET: Peminjamen
+        [Authorize(Policy = "readonlypolicy")]
+        // GET: Peminjaman
         public async Task<IActionResult> Index(string ktsd, string searchString, string currentFilter, int? pageNumber, string sortOrder)
         {
             //buat list menyimpan ketersediaan
@@ -107,6 +109,7 @@ namespace RentalKendaraan_20180140037.Controllers
             return View(peminjaman);
         }
 
+        [Authorize(Policy = "editpolicy")]
         // GET: Peminjamen/Create
         public IActionResult Create()
         {
@@ -193,6 +196,7 @@ namespace RentalKendaraan_20180140037.Controllers
         }
 
         // GET: Peminjamen/Delete/5
+        [Authorize(Policy = "deletepolicy")]
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
